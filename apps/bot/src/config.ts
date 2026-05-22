@@ -13,7 +13,9 @@ export const config = {
   bot: {
     token: required('BOT_TOKEN'),
     webhookUrl: process.env.BOT_WEBHOOK_URL,
-    adminId: process.env.ADMIN_TELEGRAM_ID ? BigInt(process.env.ADMIN_TELEGRAM_ID) : null,
+    adminId: process.env.ADMIN_TELEGRAM_ID && /^\d+$/.test(process.env.ADMIN_TELEGRAM_ID)
+      ? BigInt(process.env.ADMIN_TELEGRAM_ID)
+      : null,
   },
   database: {
     url: required('DATABASE_URL'),
