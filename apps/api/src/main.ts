@@ -1,4 +1,10 @@
 import 'reflect-metadata';
+
+// BigInt serialization fix — Fastify/JSON can't serialize BigInt natively
+(BigInt.prototype as unknown as { toJSON: () => string }).toJSON = function () {
+  return this.toString();
+};
+
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { ValidationPipe, Logger } from '@nestjs/common';

@@ -41,7 +41,7 @@ export class AuthService {
     }
 
     const tokens = await this.generateTokens(user);
-    return { ...tokens, user };
+    return { ...tokens, user: { ...user, telegramId: user.telegramId.toString() } as any };
   }
 
   async refreshTokens(refreshToken: string): Promise<TokenPair> {

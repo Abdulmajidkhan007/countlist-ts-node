@@ -44,6 +44,6 @@ export class AuthController {
   @Get('me')
   @ApiBearerAuth()
   async getMe(@CurrentUser() user: User) {
-    return user;
+    return { ...user, telegramId: user.telegramId.toString() };
   }
 }
