@@ -10,8 +10,8 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "paths": {
-      "@expense-tracker/shared": ["../../packages/shared/src"],
-      "@expense-tracker/database": ["../../packages/database/src"]
+      "@expense-tracker/shared": ["../../packages/shared/dist"],
+      "@expense-tracker/database": ["../../packages/database/dist"]
     }
   },
   "include": ["src"],
