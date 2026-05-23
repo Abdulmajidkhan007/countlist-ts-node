@@ -1,11 +1,11 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-COPY package.json yarn.lock ./
+COPY package.json ./
 COPY packages/shared/package.json ./packages/shared/
 COPY apps/web/package.json ./apps/web/
 
-RUN yarn install --frozen-lockfile
+RUN yarn install
 
 COPY packages/shared/ ./packages/shared/
 COPY apps/web/ ./apps/web/

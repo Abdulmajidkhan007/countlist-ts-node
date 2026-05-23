@@ -2,12 +2,12 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copy workspace manifests first (layer caching)
-COPY package.json yarn.lock ./
+COPY package.json ./
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/database/package.json ./packages/database/
 COPY apps/api/package.json ./apps/api/
 
-RUN yarn install --frozen-lockfile
+RUN yarn install
 
 # Copy source files
 COPY packages/shared/ ./packages/shared/
@@ -36,12 +36,12 @@ RUN cd apps/api && npx tsc
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-COPY package.json yarn.lock ./
+COPY package.json ./
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/database/package.json ./packages/database/
 COPY apps/api/package.json ./apps/api/
 
-RUN yarn install --frozen-lockfile --production
+RUN yarn install --production
 
 # Point workspace packages to compiled dist
 RUN node -e " \

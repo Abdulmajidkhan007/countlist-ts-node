@@ -1,12 +1,12 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-COPY package.json yarn.lock ./
+COPY package.json ./
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/database/package.json ./packages/database/
 COPY apps/bot/package.json ./apps/bot/
 
-RUN yarn install --frozen-lockfile
+RUN yarn install
 
 COPY packages/shared/ ./packages/shared/
 COPY packages/database/ ./packages/database/
@@ -33,12 +33,12 @@ RUN cd apps/bot && npx tsc
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-COPY package.json yarn.lock ./
+COPY package.json ./
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/database/package.json ./packages/database/
 COPY apps/bot/package.json ./apps/bot/
 
-RUN yarn install --frozen-lockfile --production
+RUN yarn install --production
 
 RUN node -e " \
   const fs = require('fs'); \
