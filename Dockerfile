@@ -1,5 +1,6 @@
 # ── Shared builder ────────────────────────────────────────────
 FROM node:20-alpine AS builder
+RUN apk add --no-cache openssl
 WORKDIR /app
 
 COPY package.json ./
@@ -42,6 +43,7 @@ RUN cd apps/web && npx vite build
 
 # ── API runner ────────────────────────────────────────────────
 FROM node:20-alpine AS api
+RUN apk add --no-cache openssl
 WORKDIR /app
 
 COPY package.json ./
@@ -72,6 +74,7 @@ CMD ["node", "apps/api/dist/main.js"]
 
 # ── Bot runner ────────────────────────────────────────────────
 FROM node:20-alpine AS bot
+RUN apk add --no-cache openssl
 WORKDIR /app
 
 COPY package.json ./
