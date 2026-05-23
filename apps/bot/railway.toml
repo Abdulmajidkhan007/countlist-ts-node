@@ -1,0 +1,5 @@
+[build]
+dockerfilePath = "apps/bot/Dockerfile"
+
+[deploy]
+restartPolicyType = "always"

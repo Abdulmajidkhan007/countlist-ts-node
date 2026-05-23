@@ -9,6 +9,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { GroupsModule } from './modules/groups/groups.module';
 import { LimitsModule } from './modules/limits/limits.module';
 import { ExportsModule } from './modules/exports/exports.module';
+import { HealthModule } from './modules/health/health.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
@@ -26,6 +27,7 @@ import { Reflector } from '@nestjs/core';
     GroupsModule,
     LimitsModule,
     ExportsModule,
+    HealthModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
