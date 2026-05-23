@@ -58,4 +58,4 @@ COPY packages/database/prisma ./packages/database/prisma
 
 ENV NODE_ENV=production
 EXPOSE 3001
-CMD ["sh", "-c", "node_modules/.bin/prisma db push --schema=packages/database/prisma/schema.prisma --skip-generate && node apps/api/dist/main.js"]
+CMD ["sh", "-c", "node node_modules/prisma/build/index.js db push --schema=packages/database/prisma/schema.prisma --skip-generate && node apps/api/dist/main.js"]
