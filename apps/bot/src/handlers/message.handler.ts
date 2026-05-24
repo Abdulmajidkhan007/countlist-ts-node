@@ -22,7 +22,7 @@ export function registerMessageHandlers(bot: Telegraf<BotContext>, expenseServic
       if (result) {
         await ctx.replyWithMarkdownV2(
           result.formatted.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&'),
-          { reply_to_message_id: ctx.message.message_id },
+          { reply_parameters: { message_id: ctx.message.message_id } },
         );
       }
     } catch (error) {
