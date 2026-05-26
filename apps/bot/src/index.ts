@@ -2,7 +2,7 @@ import { Telegraf, session } from 'telegraf';
 import { PrismaClient } from '@prisma/client';
 import { config } from './config';
 import { logger } from './utils/logger';
-import { BotContext } from './types/context';
+import { BotContext, SessionData } from './types/context';
 import { groupMiddleware } from './middlewares/group.middleware';
 import { UserService } from './services/user.service';
 import { ExpenseService } from './services/expense.service';
@@ -11,6 +11,8 @@ import { registerStartCommand } from './commands/start.command';
 import { registerHelpCommand } from './commands/help.command';
 import { registerStatsCommands } from './commands/stats.command';
 import { registerExportCommand } from './commands/export.command';
+import { registerCategoryCommands } from './commands/categories.command';
+import { registerAdminCommands } from './commands/admin.command';
 import { registerCallbackHandlers } from './handlers/callback.handler';
 import { registerMessageHandlers } from './handlers/message.handler';
 
@@ -25,26 +27,23 @@ async function bootstrap() {
   const expenseService = new ExpenseService(prisma);
   const exportService = new ExportService(prisma);
 
-  // Middlewares
-  bot.use(session());
+  bot.use(session<SessionData>());
   bot.use(groupMiddleware(userService));
 
-  // Commands
   registerStartCommand(bot);
   registerHelpCommand(bot);
   registerStatsCommands(bot, expenseService);
   registerExportCommand(bot);
+  registerCategoryCommands(bot, prisma);
+  registerAdminCommands(bot, prisma);
 
-  // Handlers
-  registerCallbackHandlers(bot, expenseService, exportService);
-  registerMessageHandlers(bot, expenseService);
+  registerCallbackHandlers(bot, expenseService, exportService, prisma);
+  registerMessageHandlers(bot, expenseService, prisma);
 
-  // Error handler
   bot.catch((err, ctx) => {
     logger.error(`Bot error for ${ctx.updateType}:`, err);
   });
 
-  // Launch
   if (config.bot.webhookUrl && config.nodeEnv === 'production') {
     await bot.launch({ webhook: { domain: config.bot.webhookUrl } });
     logger.info(`Bot started with webhook: ${config.bot.webhookUrl}`);
@@ -53,14 +52,8 @@ async function bootstrap() {
     logger.info('Bot started with polling');
   }
 
-  process.once('SIGINT', () => {
-    bot.stop('SIGINT');
-    prisma.$disconnect();
-  });
-  process.once('SIGTERM', () => {
-    bot.stop('SIGTERM');
-    prisma.$disconnect();
-  });
+  process.once('SIGINT', () => { bot.stop('SIGINT'); prisma.$disconnect(); });
+  process.once('SIGTERM', () => { bot.stop('SIGTERM'); prisma.$disconnect(); });
 }
 
 bootstrap().catch((err) => {
