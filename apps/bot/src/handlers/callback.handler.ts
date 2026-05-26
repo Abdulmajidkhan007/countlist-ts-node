@@ -15,6 +15,10 @@ function isAdmin(ctx: BotContext): boolean {
   return !!config.bot.adminId && ctx.dbUser?.telegramId === config.bot.adminId;
 }
 
+function getWebUrl(): string {
+  return process.env.WEB_URL || '';
+}
+
 export function registerCallbackHandlers(
   bot: Telegraf<BotContext>,
   expenseService: ExpenseService,
@@ -165,11 +169,23 @@ export function registerCallbackHandlers(
 
   bot.action('settings:menu', async (ctx) => {
     await ctx.answerCbQuery();
-    const webUrl = process.env.WEB_URL || process.env.API_URL?.replace('/api/v1', '').replace('/api', '') || 'Dashboard';
-    await ctx.editMessageText(
-      escapeMarkdownV2(`⚙️ *Sozlamalar*\n\nTo'liq sozlamalar uchun veb\-dashboardga kiring:\n${webUrl}`),
-      { parse_mode: 'MarkdownV2', ...mainInlineKeyboard() },
-    );
+    const webUrl = getWebUrl();
+
+    if (webUrl) {
+      await ctx.reply(
+        '⚙️ Sozlamalar\n\nTo\'liq boshqaruv uchun veb-dashboardga o\'ting:',
+        Markup.inlineKeyboard([
+          [Markup.button.url('🌐 Dashboard ochish', webUrl)],
+          [Markup.button.callback('⬅️ Orqaga', 'back:main')],
+        ]),
+      );
+    } else {
+      await ctx.reply(
+        '⚙️ Sozlamalar\n\n' +
+        'Veb-dashboard uchun Railway BOT servisiga quyidagini qo\'shing:\n' +
+        'WEB_URL = https://sizning-web-url.railway.app',
+      );
+    }
   });
 
   // ── Admin callbacks ────────────────────────────────────────────
