@@ -1,11 +1,16 @@
 import { Telegraf } from 'telegraf';
 import { BotContext } from '../types/context';
 import { ExpenseService } from '../services/expense.service';
+import { ExportService } from '../services/export.service';
 import { statsNavKeyboard, mainInlineKeyboard, exportKeyboard } from '../keyboards/main.keyboard';
 import { escapeMarkdownV2 } from '../commands/stats.command';
 import { logger } from '../utils/logger';
 
-export function registerCallbackHandlers(bot: Telegraf<BotContext>, expenseService: ExpenseService): void {
+export function registerCallbackHandlers(
+  bot: Telegraf<BotContext>,
+  expenseService: ExpenseService,
+  exportService: ExportService,
+): void {
   bot.action('stats:today', async (ctx) => {
     if (!ctx.dbGroup) return;
     await ctx.answerCbQuery();
@@ -69,14 +74,35 @@ export function registerCallbackHandlers(bot: Telegraf<BotContext>, expenseServi
   });
 
   bot.action(/^export:(pdf|csv|excel):(.+)$/, async (ctx) => {
-    const match = ctx.match;
-    const format = match[1].toUpperCase();
-    await ctx.answerCbQuery(`⏳ ${format} tayyorlanmoqda...`);
-    await ctx.reply(
-      `⏳ ${format} fayli tayyorlanmoqda...\n\nBu bir necha soniya vaqt olishi mumkin.`,
-    );
-    // Export queue - API service handles this
-    logger.info(`Export requested: ${format} for group`);
+    if (!ctx.dbGroup) return;
+    const format = ctx.match[1] as 'pdf' | 'csv' | 'excel';
+    const groupId = ctx.match[2];
+
+    await ctx.answerCbQuery(`⏳ ${format.toUpperCase()} tayyorlanmoqda...`);
+
+    if (format === 'pdf') {
+      await ctx.reply('❌ PDF export hozircha mavjud emas.\nIltimos CSV yoki Excel formatini tanlang.');
+      return;
+    }
+
+    const progressMsg = await ctx.reply(`⏳ ${format.toUpperCase()} fayli tayyorlanmoqda...`);
+
+    try {
+      const buf = format === 'csv'
+        ? await exportService.generateCsv(groupId)
+        : await exportService.generateExcel(groupId);
+
+      const ext = format === 'csv' ? 'csv' : 'xlsx';
+      const date = new Date().toISOString().split('T')[0];
+      const filename = `xarajatlar_${date}.${ext}`;
+
+      await ctx.replyWithDocument({ source: buf, filename });
+      await ctx.telegram.deleteMessage(ctx.chat!.id, progressMsg.message_id).catch(() => {});
+    } catch (err) {
+      logger.error('Export error:', err);
+      await ctx.telegram.deleteMessage(ctx.chat!.id, progressMsg.message_id).catch(() => {});
+      await ctx.reply('❌ Export vaqtida xato yuz berdi. Qayta urinib ko\'ring.');
+    }
   });
 
   bot.action('back:main', async (ctx) => {

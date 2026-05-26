@@ -6,6 +6,7 @@ import { BotContext } from './types/context';
 import { groupMiddleware } from './middlewares/group.middleware';
 import { UserService } from './services/user.service';
 import { ExpenseService } from './services/expense.service';
+import { ExportService } from './services/export.service';
 import { registerStartCommand } from './commands/start.command';
 import { registerHelpCommand } from './commands/help.command';
 import { registerStatsCommands } from './commands/stats.command';
@@ -22,6 +23,7 @@ async function bootstrap() {
 
   const userService = new UserService(prisma);
   const expenseService = new ExpenseService(prisma);
+  const exportService = new ExportService(prisma);
 
   // Middlewares
   bot.use(session());
@@ -34,7 +36,7 @@ async function bootstrap() {
   registerExportCommand(bot);
 
   // Handlers
-  registerCallbackHandlers(bot, expenseService);
+  registerCallbackHandlers(bot, expenseService, exportService);
   registerMessageHandlers(bot, expenseService);
 
   // Error handler
