@@ -74,7 +74,6 @@ export function registerCallbackHandlers(
   });
 
   bot.action(/^export:(pdf|csv|excel):(.+)$/, async (ctx) => {
-    if (!ctx.dbGroup) return;
     const format = ctx.match[1] as 'pdf' | 'csv' | 'excel';
     const groupId = ctx.match[2];
 
@@ -101,7 +100,7 @@ export function registerCallbackHandlers(
     } catch (err) {
       logger.error('Export error:', err);
       await ctx.telegram.deleteMessage(ctx.chat!.id, progressMsg.message_id).catch(() => {});
-      await ctx.reply('❌ Export vaqtida xato yuz berdi. Qayta urinib ko\'ring.');
+      await ctx.reply(`❌ Export xatosi: ${err instanceof Error ? err.message : 'Noma\'lum xato'}`);
     }
   });
 
@@ -120,8 +119,9 @@ export function registerCallbackHandlers(
 
   bot.action('settings:menu', async (ctx) => {
     await ctx.answerCbQuery();
+    const webUrl = process.env.WEB_URL || process.env.API_URL?.replace('/api/v1', '').replace('/api', '') || 'Dashboard';
     await ctx.editMessageText(
-      escapeMarkdownV2(`⚙️ *Sozlamalar*\n\nTo'liq sozlamalar uchun veb-dashboardga kiring:\n${process.env.API_URL?.replace('/api', '') || 'http://localhost:3000'}`),
+      escapeMarkdownV2(`⚙️ *Sozlamalar*\n\nTo'liq sozlamalar uchun veb\-dashboardga kiring:\n${webUrl}`),
       { parse_mode: 'MarkdownV2', ...mainInlineKeyboard() },
     );
   });
