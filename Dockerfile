@@ -1,4 +1,4 @@
-# ── Shared builder ────────────────────────────────────────────
+# ── Shared builder ──────────────────────────────────────────────
 FROM node:20-alpine AS builder
 RUN apk add --no-cache openssl
 WORKDIR /app
@@ -41,7 +41,7 @@ ARG VITE_API_URL=https://your-api.railway.app
 ENV VITE_API_URL=$VITE_API_URL
 RUN cd apps/web && npx vite build
 
-# ── API runner ────────────────────────────────────────────────
+# ── API runner ────────────────────────────────────────────
 FROM node:20-alpine AS api
 RUN apk add --no-cache openssl
 WORKDIR /app
@@ -72,7 +72,7 @@ ENV NODE_ENV=production
 EXPOSE 3001
 CMD ["node", "apps/api/dist/main.js"]
 
-# ── Bot runner ────────────────────────────────────────────────
+# ── Bot runner ────────────────────────────────────────────
 FROM node:20-alpine AS bot
 RUN apk add --no-cache openssl
 WORKDIR /app
@@ -102,9 +102,9 @@ COPY --from=builder /app/apps/bot/dist ./apps/bot/dist
 ENV NODE_ENV=production
 CMD ["node", "apps/bot/dist/index.js"]
 
-# ── Web runner (nginx) ────────────────────────────────────────
+# ── Web runner (nginx) ────────────────────────────────────
 FROM nginx:alpine AS web
 COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
-COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
+COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf.template
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/bin/sh", "-c", "envsubst '$PORT' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
